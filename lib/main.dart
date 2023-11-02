@@ -24,10 +24,6 @@ class MainApp extends StatelessWidget {
   }
 }
 
-class HomePage extends StatelessWidget {
-  const HomePage({super.key})
-}
-
 Future<Meteo> getMeteoData() async {
   final response = await http.get(Uri.parse('https://api.open-https://open-meteo.com/en/docs/ecmwf-api#latitude=40.7967&longitude=14.0735&hourly=temperature_2m.com/v1/ecmwf?'));
   if (response.statusCode == 200) {
