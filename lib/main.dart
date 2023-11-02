@@ -15,7 +15,6 @@ class MainApp extends StatelessWidget {
   
   @override
   Widget build(BuildContext context) {
-    getMeteoData(0,0);
     return MaterialApp(
       home: const HomePage()
     );
@@ -24,14 +23,15 @@ class MainApp extends StatelessWidget {
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
-
+  final String latitude = "";
   final String place = "";
 
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
       body: Center(
-        child: Text("aaaa"),
+        child: Text("aaabbbbaa"),
       ),
     );
   }
@@ -55,7 +55,6 @@ Future<Position> determinePosition() async {
           'Location permissions are permanently denied, we cannot request permissions.');
     }
     Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.low);
-    print(position);
 
     return await Geolocator.getCurrentPosition();
   }
