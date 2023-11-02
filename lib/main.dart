@@ -5,22 +5,23 @@ import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:http/http.dart' as http;
 void main() {
-  getMeteoData(0,0);
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(const MainApp());
+ 
 }
 
 class MainApp extends StatelessWidget {
   const MainApp({super.key});
-
+  
   @override
   Widget build(BuildContext context) {
+    getMeteoData(0,0);
     return MaterialApp(
       home: const HomePage()
     );
   }
 }
 
-<<<<<<< HEAD
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
@@ -36,48 +37,39 @@ class HomePage extends StatelessWidget {
   }
 }
 
-Future<bool> _handleLocationPermission() async {
-  bool serviceEnabled;
-  LocationPermission permission;
-  
-  serviceEnabled = await Geolocator.isLocationServiceEnabled();
-  if (!serviceEnabled) {
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Location services are disabled. Please enable the services')));
-    return false;
-  }
-  permission = await Geolocator.checkPermission();
-  if (permission == LocationPermission.denied) {
+Future<Position> determinePosition() async {
+    bool serviceEnabled;
+    LocationPermission permission;
+
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    permission = await Geolocator.checkPermission();
     permission = await Geolocator.requestPermission();
-    if (permission == LocationPermission.denied) {   
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Location permissions are denied')));
-      return false;
+
+      if (permission == LocationPermission.denied) {
+        return Future.error('Location permissions are denied');
+      }
+
+
+    if (permission == LocationPermission.deniedForever) {
+      return Future.error(
+          'Location permissions are permanently denied, we cannot request permissions.');
     }
+    Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.low);
+    print(position);
+
+    return await Geolocator.getCurrentPosition();
   }
-  if (permission == LocationPermission.deniedForever) {
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Location permissions are permanently denied, we cannot request permissions.')));
-    return false;
-  }
-  return true;
-}
 
 Future<Meteo> getMeteoData(double latitude, double longitude) async {
   if (latitude == 0 && longitude == 0) {
-    Position tmpPosition = await Geolocator.getCurrentPosition();
+    Position tmpPosition = await determinePosition();
     latitude = tmpPosition.latitude;
     longitude = tmpPosition.longitude;
   }
   final response = await http.get(Uri.parse("https://api.open-meteo.com/v1/forecast?latitude="+latitude.toString()+"&longitude="+longitude.toString()));
-=======
-Future<Meteo> getMeteoData() async {
-  final response = await http.get(Uri.parse('https://api.open-https://open-meteo.com/en/docs/ecmwf-api#latitude=40.7967&longitude=14.0735&hourly=temperature_2m.com/v1/ecmwf?'));
->>>>>>> a3bcaf77b2e305998e8c03ee02eaf6d487e5275c
   if (response.statusCode == 200) {
     return Meteo.fromJson(jsonDecode(response.body) as Map<String,dynamic>);
   } else {
-    print(response);
     throw Exception('Failed to load');
   }
 }
