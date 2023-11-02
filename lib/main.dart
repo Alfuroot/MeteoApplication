@@ -20,6 +20,7 @@ class MainApp extends StatelessWidget {
   }
 }
 
+<<<<<<< HEAD
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
@@ -69,6 +70,10 @@ Future<Meteo> getMeteoData(double latitude, double longitude) async {
     longitude = tmpPosition.longitude;
   }
   final response = await http.get(Uri.parse("https://api.open-meteo.com/v1/forecast?latitude="+latitude.toString()+"&longitude="+longitude.toString()));
+=======
+Future<Meteo> getMeteoData() async {
+  final response = await http.get(Uri.parse('https://api.open-https://open-meteo.com/en/docs/ecmwf-api#latitude=40.7967&longitude=14.0735&hourly=temperature_2m.com/v1/ecmwf?'));
+>>>>>>> a3bcaf77b2e305998e8c03ee02eaf6d487e5275c
   if (response.statusCode == 200) {
     return Meteo.fromJson(jsonDecode(response.body) as Map<String,dynamic>);
   } else {
