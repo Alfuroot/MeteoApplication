@@ -15,29 +15,84 @@ class MainApp extends StatelessWidget {
   
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: const HomePage()
+    return const MaterialApp(
+      home: HomePage()
     );
   }
 }
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
-  final String latitude = "";
-  final String place = "";
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+
+  late Future<Position> position;
+  late Future<Meteo> meteoData;
+  @override
+    void initState() {
+      super.initState();
+      // this should not be done in build method.
+      meteoData = getMeteoData();
+    }
 
   @override
   Widget build(BuildContext context) {
-
-    return Scaffold(
-      body: Center(
-        child: Text("aaabbbbaa"),
+    return MaterialApp(
+      home: Scaffold(
+        body: FutureBuilder(
+          future: Future.wait([getLocality(),getMeteoData()]),
+          builder: (ctx, snapshot) {
+            if (snapshot.hasData) {
+              return Column(
+                children: [
+                  SizedBox(
+                    height: MediaQuery.of(context).size.height / 3,
+                    width: MediaQuery.of(context).size.width,
+                    child: const Image(image: AssetImage("assets/sunbg.jpg"),
+                    )
+                  ),
+                  Text(snapshot.data?.first.toString() ?? "Permission for geolocalization was denied"),
+                  Text(meteoData.toString()),
+                ]
+              );
+            } else {
+                return const Center(
+            child: CircularProgressIndicator(),
+            );
+            }
+          }, 
+        ),
       ),
     );
   }
-}
 
-Future<Position> determinePosition() async {
+  Widget displayImage(String imagePath) {
+    return SizedBox(
+      height: MediaQuery.of(context).size.height / 3,
+      child: Expanded(
+          child: Container(
+            margin: const EdgeInsets.only(top: 20, right: 50),
+            decoration: BoxDecoration(
+              borderRadius: const BorderRadius.only(
+                  bottomLeft: Radius.circular(30),
+                  bottomRight: Radius.circular(30)),
+              image: DecorationImage(
+                image: AssetImage(imagePath),
+                fit: BoxFit.cover,
+              ),
+            ),
+          ),
+      ),
+    );
+  }
+  
+
+  Future<Position> determinePosition() async {
+
     bool serviceEnabled;
     LocationPermission permission;
 
@@ -55,21 +110,23 @@ Future<Position> determinePosition() async {
           'Location permissions are permanently denied, we cannot request permissions.');
     }
     Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.low);
-
-    return await Geolocator.getCurrentPosition();
+    return position;
   }
 
-Future<Meteo> getMeteoData(double latitude, double longitude) async {
-  if (latitude == 0 && longitude == 0) {
+  Future<String?> getLocality() async {
+    Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.low);
+    List<Placemark> placemarks = await placemarkFromCoordinates(position.latitude, position.longitude);
+    return placemarks.first.locality;
+  }
+
+  Future<Meteo> getMeteoData() async {
     Position tmpPosition = await determinePosition();
-    latitude = tmpPosition.latitude;
-    longitude = tmpPosition.longitude;
-  }
-  final response = await http.get(Uri.parse("https://api.open-meteo.com/v1/forecast?latitude="+latitude.toString()+"&longitude="+longitude.toString()));
-  if (response.statusCode == 200) {
-    return Meteo.fromJson(jsonDecode(response.body) as Map<String,dynamic>);
-  } else {
-    throw Exception('Failed to load');
+    final response = await http.get(Uri.parse("https://api.open-meteo.com/v1/forecast?latitude=${tmpPosition.latitude}&longitude=${tmpPosition.longitude}&hourly=temperature_2m,precipitation_probability&forecast_days=1"));
+    if (response.statusCode == 200) {
+      return Meteo.fromJson(jsonDecode(response.body) as Map<String,dynamic>);
+    } else {
+      throw Exception('Failed to load');
+    }
   }
 }
 
