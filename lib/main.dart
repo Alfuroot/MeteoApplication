@@ -60,6 +60,8 @@ class _HomePageState extends State<HomePage> {
   late String imageToShow = "sun";
   late double minTemperature = 0;
   late double maxTemperature = 0;
+  late var color = Colors.blue;
+
   @override
   void initState() {
     super.initState();
@@ -154,7 +156,7 @@ class _HomePageState extends State<HomePage> {
                     builder: (context, scrollController) {
                       return Container(
                         decoration: BoxDecoration(
-                          color: Colors.blue.withOpacity(0.4),
+                          color: color.withOpacity(0.4),
                           borderRadius: const BorderRadius.only(
                             topLeft: Radius.circular(20),
                             topRight: Radius.circular(20),
@@ -360,10 +362,13 @@ class _HomePageState extends State<HomePage> {
       int humidity = int.parse(meteo.hourly.values.elementAt(2)[DateTime.now().hour]);
           if (humidity < 30) {
             imageToShow = "sun";
+            color = Colors.blue;
         } else if (humidity < 60) {
             imageToShow = "cloud";
+            color = Colors.blueGrey;
         } else {
             imageToShow = "rain";
+            color = Colors.blueGrey;
         }
         minTemperature = double.parse(meteo.hourly.values.elementAt(1).first);
         maxTemperature = double.parse(meteo.hourly.values.elementAt(1).first);
