@@ -1,3 +1,3 @@
-# flutter_application_1
+# MeteoApplication
 
 A new Flutter project.
